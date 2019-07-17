@@ -64,7 +64,7 @@ class ScheduleSyncer implements Runnable
 
                     // add one day to sync_time
                     Date syncTime = Date.from(ZonedDateTime.ofInstant(document.getDate("sync_time").toInstant(),
-                            Main.getScheduleManager().getTimeZone(scheduleId)).plusDays(1).toInstant());
+                            Main.getScheduleManager().getTimeZone(scheduleId)).plusSeconds(30).toInstant()); //TODO change back to plusdays(1)
 
                     // update schedule document with next sync time
                     Main.getDBDriver().getScheduleCollection()
@@ -82,7 +82,7 @@ class ScheduleSyncer implements Runnable
                     // attempt to sync schedule
                     if(Main.getCalendarConverter().checkValidAddress(address, service))
                     {
-                        Main.getCalendarConverter().importCalendar(address, channel, service);
+                        Main.getCalendarConverter().exportCalendar(address, channel, service);
                         Logging.info(this.getClass(), "Synchronized schedule #" + channel.getName() + " [" +
                                 document.getString("_id") + "] on '" + channel.getGuild().getName() + "' [" +
                                 channel.getGuild().getId() + "]");

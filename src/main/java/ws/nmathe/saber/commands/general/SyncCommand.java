@@ -64,10 +64,10 @@ public class SyncCommand implements Command
             return "That's not enough arguments!\n" +
                     "Use ``" + head + " <channel> [<calendar address>]``";
         }
-        if(args.length > 3)
+        if(args.length > 2)
         {
             return "That's too many arguments!\n" +
-                    "Use ``" + head + " <channel> [<import|export> <calendar_address>]``";
+                    "Use ``" + head + " <channel> <calendar_address>]``";
         }
 
         // validate the supplied channel
@@ -91,21 +91,6 @@ public class SyncCommand implements Command
 
         if(args.length == 2)
         {
-            index++;
-            address = args[index];
-        }
-        else if(args.length == 3)
-        {
-            index++;
-            switch(args[index].toLowerCase())
-            {
-                case "import":
-                case "export":
-                    break;
-
-                default:
-                    return "*"+args[index]+"* is invalid! Please use either *import* or *export*!";
-            }
             index++;
             address = args[index];
         }
@@ -137,7 +122,6 @@ public class SyncCommand implements Command
 
         index++;
 
-        boolean importFlag = true;
         String address;
         if( args.length == 1 )
         {
@@ -145,52 +129,34 @@ public class SyncCommand implements Command
         }
         else
         {
-            if(args[index].equalsIgnoreCase("export"))
-            {
-                importFlag = false;
-                index++;
-            }
-            else if(args[index].equalsIgnoreCase("import"))
-            {
-                index++;
-            }
-
+            //Todo always exports. Can't import now. So no need for the keywords
             address = args[index];
-            if(importFlag)
-            {
-                // enable auto-sync'ing timezone
-                Main.getDBDriver().getScheduleCollection().updateOne(eq("_id", cId), set("timezone_sync", true));
 
-                // set user who has authorized the sync
-                if(GoogleAuth.authorize(event.getAuthor().getId()) != null)
-                    Main.getDBDriver().getScheduleCollection().updateOne(eq("_id", cId), set("sync_user", event.getAuthor().getId()));
-                else
-                    Main.getDBDriver().getScheduleCollection().updateOne(eq("_id", cId), set("sync_user", null));
-            }
+            // enable auto-sync'ing timezone
+            Main.getDBDriver().getScheduleCollection().updateOne(eq("_id", cId), set("timezone_sync", true));
+
+            // set user who has authorized the sync
+            if(GoogleAuth.authorize(event.getAuthor().getId()) != null)
+                Main.getDBDriver().getScheduleCollection().updateOne(eq("_id", cId), set("sync_user", event.getAuthor().getId()));
+            else
+                Main.getDBDriver().getScheduleCollection().updateOne(eq("_id", cId), set("sync_user", null));
         }
 
-        if(importFlag)
+        // sync calendar with export
+        boolean success = Main.getCalendarConverter().exportCalendar(address, channel, service);
+        Main.getScheduleManager().setAddress(cId,address);
+
+        // report result
+        String content;
+        if(success)
         {
-            Main.getCalendarConverter().importCalendar(address, channel, service);
-            Main.getScheduleManager().setAddress(cId,address);
-
-            String content = "I have finished syncing <#" + cId + ">!";
-            MessageUtilities.sendMsg(content, event.getChannel(), null);
-        }
-        else
+            content = "I have finished syncing <#" + cId + ">!";
+        } else
         {
-            boolean success = Main.getCalendarConverter().exportCalendar(address, channel, service);
-            String content;
-            if(success)
-            {
-                content = "I have finished exporting <#" + cId + ">!";
-            } else
-            {
-                content = "I was unable to export <#" + cId + "> to " + address + "!\n" +
-                        "Please make sure I am authorized to edit that calendar!\n" +
-                        "You can provide me access through the ``oauth`` command.";
-            }
-            MessageUtilities.sendMsg(content, event.getChannel(), null);
+            content = "I was unable to export <#" + cId + "> to " + address + "!\n" +
+                    "Please make sure I am authorized to edit that calendar!\n" +
+                    "You can provide me access through the ``oauth`` command.";
         }
+        MessageUtilities.sendMsg(content, event.getChannel(), null);
     }
 }

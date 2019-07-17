@@ -102,6 +102,26 @@ public class CalendarConverter
             return false;
         }
 
+        // query the google calendar address for the list of events
+        Events events;
+        try
+        {
+            ZonedDateTime min = ZonedDateTime.now();
+            ZonedDateTime max = min.plusDays(Main.getScheduleManager().getSyncLength(channel.getId()));
+            events = service.events().list(address)
+                    .setTimeMin(new DateTime(min.format(EventRecurrence.RFC3339_FORMATTER)))
+                    .setTimeMax(new DateTime(max.format(EventRecurrence.RFC3339_FORMATTER)))
+                    .setOrderBy("startTime")
+                    .setSingleEvents(true)
+                    .setMaxResults(Main.getBotSettingsManager().getMaxEntries())
+                    .execute();
+        }
+        catch (Exception e)
+        {
+            Logging.exception(this.getClass(), e);
+            return false;
+        }
+
         Integer failure[] = { 0 };
         Collection<ScheduleEntry> entries = Main.getEntryManager().getEntriesFromChannel(channel.getId());
         entries.forEach(se->
@@ -155,7 +175,7 @@ public class CalendarConverter
             }
             catch (Exception e)
             {
-                Logging.warn(this.getClass(), "Unable to export calendar:" +e.getMessage());
+                Logging.warn(this.getClass(), "Unable to sync calendar:" +e.getMessage());
                 failure[0] = 1;
             }
         });

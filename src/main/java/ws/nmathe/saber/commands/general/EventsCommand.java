@@ -13,6 +13,7 @@ import ws.nmathe.saber.utils.MessageUtilities;
 import ws.nmathe.saber.utils.ParsingUtilities;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -141,9 +142,12 @@ public class EventsCommand implements Command
                                 status = "ends";
                             }
 
+                            // get date and time correctly formatted
+                            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM");
+
                             // add the event as a single line in the content
                             content.append(":id:``").append(ParsingUtilities.intToEncodedID(top.getId()))
-                                    .append("`` ~ **").append(top.getTitle()).append("** ").append(status).append(" in *");
+                                    .append("`` ~ **").append(top.getTitle()).append("** [").append(top.getStart().format(dateFormatter)).append("] ").append(status).append(" in *");
                             ParsingUtilities.addTimeGap(content, timeTil, false, 3);
                             content.append("*\n");
                             count++;     // iterate event counter

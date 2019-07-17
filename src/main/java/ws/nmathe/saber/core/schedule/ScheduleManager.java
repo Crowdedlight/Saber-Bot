@@ -39,7 +39,7 @@ public class ScheduleManager
      * init() need not be called if the bot has not been configured to use a google service account
      */
     public void init()
-    {   // every 15 minutes create a thread to check for schedules to sync
+    {   // every 30 minutes create a thread to check for schedules to sync
         ScheduledExecutorService syncScheduler = Executors.newScheduledThreadPool(1);
         syncScheduler.scheduleAtFixedRate(new ScheduleSyncer(), 30, 30, TimeUnit.MINUTES);
     }
