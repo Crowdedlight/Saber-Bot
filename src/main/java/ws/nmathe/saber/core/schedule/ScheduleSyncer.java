@@ -64,7 +64,7 @@ class ScheduleSyncer implements Runnable
 
                     // add one day to sync_time
                     Date syncTime = Date.from(ZonedDateTime.ofInstant(document.getDate("sync_time").toInstant(),
-                            Main.getScheduleManager().getTimeZone(scheduleId)).plusSeconds(30).toInstant()); //TODO change back to plusdays(1)
+                            Main.getScheduleManager().getTimeZone(scheduleId)).plusDays(1).toInstant());
 
                     // update schedule document with next sync time
                     Main.getDBDriver().getScheduleCollection()
